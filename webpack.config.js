@@ -2,6 +2,7 @@ const path = require('path'); //Node 内置的 path 模块，并在它前面加�
 const HtmlWebpackPlugin = require('html-webpack-plugin');//生成动态html，尤其是生成的文件名是动态变化的情况下
 const webpack = require('webpack');
 const ExtractTextPlugin = require("extract-text-webpack-plugin");//提取.vue文件中的css
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 const appCss = new ExtractTextPlugin('css/app.css');
 const vendorCss = new ExtractTextPlugin('css/vendor.css');
@@ -14,7 +15,7 @@ module.exports = {
 
     output: {
         filename: '[name].js',
-        path: path.resolve(__dirname, 'build') // 写入到 ./build/app.js
+        path: path.resolve(__dirname, 'dist') // 写入到 ./dist/app.js
     },
 
     // loader就是对模块源代码进行转换和预处理。
@@ -64,10 +65,10 @@ module.exports = {
     },
 
     plugins: [
-        // new webpack.optimize.CommonsChunkPlugin({
-        //     name: 'vendor',
-        //     minChunks: Infinity
-        // }),
+        new webpack.optimize.CommonsChunkPlugin({
+            name: 'vendor',
+            minChunks: Infinity
+        }),
         new HtmlWebpackPlugin({
             filename: 'index.html',
             template: 'index.html',
@@ -97,5 +98,23 @@ if (process.env.NODE_ENV === 'development') {
     };
     module.exports.plugins = (module.exports.plugins || []).concat([
         new webpack.HotModuleReplacementPlugin()
+    ]);
+} else if (process.env.NODE_ENV === 'production') {
+    module.exports.plugins = (module.exports.plugins || []).concat([
+        new webpack.DefinePlugin({
+            'process.env': {
+                NODE_ENV: '"production"'
+            }
+        }),
+        new webpack.optimize.UglifyJsPlugin({
+            sourceMap: false,
+            compress: {
+                warnings: false
+            }
+        }),
+        new webpack.LoaderOptionsPlugin({
+            minimize: true
+        }),
+        new CleanWebpackPlugin(['dist'])
     ]);
 }
