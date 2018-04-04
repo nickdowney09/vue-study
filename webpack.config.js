@@ -1,5 +1,5 @@
 const path = require('path'); //Node 内置的 path 模块，并在它前面加上 __dirname这个全局变量
-const HtmlWebpackPlugin = require('html-webpack-plugin');//生成动态html，尤其是生成的文件名是动态变化的情况下
+const HtmlWebpackPlugin = require('html-webpack-plugin');//生成动态html，不用手动引入js，将生成后的js自动注入到html中
 const webpack = require('webpack');
 const ExtractTextPlugin = require("extract-text-webpack-plugin");//提取.vue文件中的css
 const CleanWebpackPlugin = require('clean-webpack-plugin');
@@ -14,8 +14,8 @@ module.exports = {
     },
 
     output: {
-        filename: '[name].js',
-        path: path.resolve(__dirname, 'dist') // 写入到 ./dist/app.js
+        filename: '[name]-[hash].js',
+        path: path.resolve(__dirname, 'dist') // 用path.resolve()处理，是为了确保路径是从根目录开始绝对定位到指定位置
     },
 
     // loader就是对模块源代码进行转换和预处理。
@@ -23,11 +23,12 @@ module.exports = {
         rules: [
             //将css引入js中
             {
-                test: /\.css/,
+                test: /\.css$/,
                 use: vendorCss.extract({
                     fallback: 'style-loader',
-                    use: ['css-loader', 'autoprefixer']
-                })
+                    use: ['css-loader', 'postcss-loader']
+                }),
+                exclude: /node_modules/
             },
 
             //file-loader 指定资源放置位置；url-loader: 有条件的将图片转变成base64
@@ -55,7 +56,11 @@ module.exports = {
                 options: {
                     loaders: {
                         css: appCss.extract({
-                            use: 'css-loader',
+                            use: [{
+                                loader: 'css-loader'
+                            }, {
+                                loader: 'postcss-loader'    
+                            }],
                             fallback: 'vue-style-loader'
                         })
                     }
@@ -71,8 +76,7 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             filename: 'index.html',
-            template: 'index.html',
-            inject: true
+            template: 'index.html'
         }),
         appCss,
         vendorCss

@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="fl">
         <span>{{ title }}</span>
         <button @click="$emit('remove')">X</button>
     </div>
@@ -11,3 +11,11 @@ export default {
     props: ['title']
 };
 </script>
+
+
+<style>
+    button {
+        border: 1px solid lightblue;
+        border-radius: 4px;
+    }
+</style>
